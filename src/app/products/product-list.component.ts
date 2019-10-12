@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 
 import { Product } from './product';
 import { ProductService } from './product.service';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
 })
 export class ProductListComponent implements OnInit {
-  pageTitle = 'Product List';
+  pageTitle: string = '';
   imageWidth = 50;
   imageMargin = 2;
   showImage = false;
@@ -26,9 +27,18 @@ export class ProductListComponent implements OnInit {
   filteredProducts: Product[] = [];
   products: Product[] = [];
 
-  constructor(private productService: ProductService) { }
+  constructor(private productService: ProductService,
+    private router: Router,
+    private activatedRouter: ActivatedRoute) { }
 
   ngOnInit(): void {
+    this.pageTitle = this.activatedRouter.snapshot.data['pageTitle']; // Simple example of data resolver, key is provided in routing.
+
+    this.activatedRouter.queryParamMap.subscribe(param => {
+      this.listFilter = param.get('filterBy') || '';
+      this.showImage = param.get('showImage') === 'true';
+    });
+
     this.productService.getProducts().subscribe({
       next: products => {
         this.products = products;
@@ -46,6 +56,10 @@ export class ProductListComponent implements OnInit {
 
   toggleImage(): void {
     this.showImage = !this.showImage;
+  }
+
+  edit(id) {
+    this.router.navigate(['/products', id]);
   }
 
 }
